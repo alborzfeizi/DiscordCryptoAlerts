@@ -1,3 +1,5 @@
+import config
+
 from discord.ext import commands
 import datetime
 import asyncio
@@ -15,8 +17,8 @@ interval_time= "1min" #supports 1min, 5min, 15min, 30min, 45min
 num_time_points = 30 #not yet incorporated into api calls, default value is 30
 monitorFrequency = float(5) #how often the api is called in minutes
 
-api_key = "be5e259ae1bb4240a11412ccf6f7c7c6" #obtain apikey from twelvedata.com
-bot_token = "Nzk5NzA3NzgxMTE1NTQzNjAy.YAHf6A.dW814yPQJ1P6uF5TtZWivipZlYc" #obtain bot token from discord.com/developers
+api_key = config.api_key #obtain apikey from twelvedata.com
+bot_token = config.bot_token #obtain bot token from discord.com/developers
 
 def get_stock_time_series(ticker, interval, api):
     url = f"https://api.twelvedata.com/time_series?symbol={ticker}&interval={interval}&apikey={api}"
@@ -91,7 +93,7 @@ async def setToDefault(ctx, arg=None):
     
 async def timer():
     await bot.wait_until_ready()
-    channel = bot.get_channel(799707483173158947) # replace with channel ID that you want to send to
+    channel = bot.get_channel(config.channel_id) # replace with channel ID that you want to send to
     await channel.send('Hello, my name is CryptoBot')
     await channel.send("I am monitoring {}".format(ticker_symbols))
     print(">>>>>>>>>>>>>>crypto script running<<<<<<<<<<<<<<<<<")
