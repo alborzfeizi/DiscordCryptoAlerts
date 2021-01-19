@@ -6,3 +6,10 @@
 * obtain discord bot token https://discord.com/developers/
 <br><br />
 ![](Screenshot/Screenshot1.png)
+## discord commands list
+* !serverInfo
+* !setTickerSymbols
+* !setAlertThresh
+* !setIntervalTime
+* !setMonitorFreq
+* !setToDefault
