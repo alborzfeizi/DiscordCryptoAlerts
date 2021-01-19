@@ -8,8 +8,8 @@
 ![](Screenshot/Screenshot1.png)
 ## discord commands list
 * !serverInfo
-* !setTickerSymbols \<string>
-* !setAlertThresh \<float>
-* !setIntervalTime \<string> (supports 1min, 5min, 15min, 30min, 45min)
-* !setMonitorFreq \<float>
+* !setTickerSymbols *\<string>*
+* !setAlertThresh *\<float>*
+* !setIntervalTime *\<string> (supports 1min, 5min, 15min, 30min, 45min)*
+* !setMonitorFreq *\<float>*
 * !setToDefault
