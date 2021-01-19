@@ -10,13 +10,13 @@ bot = commands.Bot(command_prefix='!')
 
 
 ticker_symbols = "BTC/USD,ETH/USD,XRP/USD"
+alertThresh = float(3) #percentage change that triggers a discord message/alert
 interval_time= "1min" #supports 1min, 5min, 15min, 30min, 45min
 num_time_points = 30 #not yet incorporated into api calls, default value is 30
-alertThresh = float(3) #percentage change that triggers a discord message/alert
 monitorFrequency = float(5) #how often the api is called in minutes
 
-api_key = "be5e259ae1bb4240a11412ccf6f7c7c6" #please obtain apikey by creating an account on twelvedata.com
-
+api_key = "be5e259ae1bb4240a11412ccf6f7c7c6" #obtain apikey from twelvedata.com
+bot_token = "Nzk5NzA3NzgxMTE1NTQzNjAy.YAHf6A.dW814yPQJ1P6uF5TtZWivipZlYc" #obtain bot token from discord.com/developers
 
 def get_stock_time_series(ticker, interval, api):
     url = f"https://api.twelvedata.com/time_series?symbol={ticker}&interval={interval}&apikey={api}"
@@ -42,16 +42,15 @@ def calculate_delta(responses, ticker):
     closeVal = (slope*x[-1])+intercept
     print("open: ",  openVal, "close: ", closeVal)
     deltaVal = ((closeVal - openVal)/openVal)*100
-    print("delta over 30min", deltaVal, "%")
+    print("delta: ", deltaVal, "%")
     return deltaVal
 
 @bot.command()
-async def test(ctx, arg='test'):
-    await ctx.send('server is running fine')
+async def serverInfo(ctx, arg=None):
     await ctx.send("ticker symbols monitored: {}".format(ticker_symbols))
+    await ctx.send("alert threshold: {}%".format(alertThresh))
     await ctx.send("interval time: {}".format(interval_time))
     await ctx.send("monitor frequency: every {} minutes".format(monitorFrequency))
-    await ctx.send("alert threshold: {}%".format(alertThresh))
     
 @bot.command()
 async def setTickerSymbols(ctx, arg="BTC/USD,ETH/USD,XRP/USD"):
@@ -77,6 +76,19 @@ async def setMonitorFreq(ctx, arg=float(5)):
     monitorFrequency = arg
     await ctx.send("I have set monitor frequency to every {} minutes".format(monitorFrequency))
 
+@bot.command()
+async def setToDefault(ctx, arg=None):
+    global ticker_symbols
+    ticker_symbols = "BTC/USD,ETH/USD,XRP/USD"
+    global alertThresh
+    alertThresh = float(3)
+    global interval_time
+    interval_time= "1min"
+    global monitorFrequency
+    monitorFrequency = float(5)
+    await ctx.send("I have reset the server with default values")
+    await serverInfo(ctx)
+    
 async def timer():
     await bot.wait_until_ready()
     channel = bot.get_channel(799707483173158947) # replace with channel ID that you want to send to
@@ -96,7 +108,6 @@ async def timer():
                 cmdprint = True
                 print("****************************************************")    
                 
-                
                 for ticker in ticker_symbols.split(','):
                     delta = calculate_delta(time_series_json, ticker)
                     if delta > alertThresh or delta < -1*alertThresh:
@@ -109,4 +120,4 @@ async def timer():
         await asyncio.sleep(1)
 
 bot.loop.create_task(timer())
-bot.run('Nzk5NzA3NzgxMTE1NTQzNjAy.YAHf6A.dW814yPQJ1P6uF5TtZWivipZlYc')
+bot.run(bot_token)
