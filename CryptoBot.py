@@ -9,9 +9,14 @@ time = datetime.datetime.now
 bot = commands.Bot(command_prefix='!')
 
 
-ticker_symbol = "BTC/USD,ETH/USD,XRP/USD"
-interval_time= "1min"
-api_key = "be5e259ae1bb4240a11412ccf6f7c7c6"
+ticker_symbols = "BTC/USD,ETH/USD,XRP/USD"
+interval_time= "1min" #supports 1min, 5min, 15min, 30min, 45min
+num_time_points = 30 #not yet incorporated into api calls, default value is 30
+alertThresh = float(3) #percentage change that triggers a discord message/alert
+monitorFrequency = float(5) #how often the api is called in minutes
+
+api_key = "be5e259ae1bb4240a11412ccf6f7c7c6" #please obtain apikey by creating an account on twelvedata.com
+
 
 def get_stock_time_series(ticker, interval, api):
     url = f"https://api.twelvedata.com/time_series?symbol={ticker}&interval={interval}&apikey={api}"
@@ -41,49 +46,62 @@ def calculate_delta(responses, ticker):
     return deltaVal
 
 @bot.command()
-async def test(ctx, arg='hi'):
-    await ctx.send(arg)
+async def test(ctx, arg='test'):
     await ctx.send('server is running fine')
-    await ctx.send(ticker_symbol)
-    await ctx.send(interval_time)
+    await ctx.send("ticker symbols monitored: {}".format(ticker_symbols))
+    await ctx.send("interval time: {}".format(interval_time))
+    await ctx.send("monitor frequency: every {} minutes".format(monitorFrequency))
+    await ctx.send("alert threshold: {}%".format(alertThresh))
+    
+@bot.command()
+async def setTickerSymbols(ctx, arg="BTC/USD,ETH/USD,XRP/USD"):
+    global ticker_symbols
+    ticker_symbols = arg
+    await ctx.send("I am now monitoring {}".format(ticker_symbols))
+    
+@bot.command()
+async def setAlertThresh(ctx, arg=float(3)):
+    global alertThresh
+    alertThresh = arg
+    await ctx.send("I have set alert threshold to {}%".format(alertThresh))
+    
+@bot.command()
+async def setIntervalTime(ctx, arg="1min"):
+    global interval_time
+    interval_time = arg
+    await ctx.send("I have set interval time to {}".format(interval_time))
+    
+@bot.command()
+async def setMonitorFreq(ctx, arg=float(5)):
+    global monitorFrequency
+    monitorFrequency = arg
+    await ctx.send("I have set monitor frequency to every {} minutes".format(monitorFrequency))
 
 async def timer():
     await bot.wait_until_ready()
     channel = bot.get_channel(799707483173158947) # replace with channel ID that you want to send to
-    await channel.send('crypto script running')
-    await channel.send(ticker_symbol)
-    alertThresh = 3
+    await channel.send('Hello, my name is CryptoBot')
+    await channel.send("I am monitoring {}".format(ticker_symbols))
+    print(">>>>>>>>>>>>>>crypto script running<<<<<<<<<<<<<<<<<")
+    
+    
     cmdprint = False
 
     while True:
-        if time().minute%5 == 0:
+        if time().minute%monitorFrequency == 0:
             
             if not cmdprint:
                 
-                time_series_json = get_stock_time_series(ticker_symbol, interval_time, api_key)
+                time_series_json = get_stock_time_series(ticker_symbols, interval_time, api_key)
                 cmdprint = True
-                print("****************************************************")
-                                
-                ticker = 'BTC/USD'
-                delta = calculate_delta(time_series_json, ticker)
+                print("****************************************************")    
                 
-                if delta > alertThresh or delta < -1*alertThresh:
-                    stuff_in_string = "{} had a {:.2f}% change within the past 30 minutes.".format(ticker, delta)
-                    await channel.send(stuff_in_string)
                 
-                ticker = 'ETH/USD'
-                delta = calculate_delta(time_series_json, ticker)
-                
-                if delta > alertThresh or delta < -1*alertThresh:
-                    stuff_in_string = "{} had a {:.2f}% change within the past 30 minutes.".format(ticker, delta)
-                    await channel.send(stuff_in_string)
-                
-                ticker = 'XRP/USD'
-                delta = calculate_delta(time_series_json, ticker)
-                
-                if delta > alertThresh or delta < -1*alertThresh:
-                    stuff_in_string = "{} had a {:.2f}% change within the past 30 minutes.".format(ticker, delta)
-                    await channel.send(stuff_in_string)
+                for ticker in ticker_symbols.split(','):
+                    delta = calculate_delta(time_series_json, ticker)
+                    if delta > alertThresh or delta < -1*alertThresh:
+                        stuff_in_string = "{} had a {:.2f}% change within the past {} minutes.".format(ticker, delta, int(interval_time[0:-3])*30)
+                        await channel.send(stuff_in_string)
         
         else:
             cmdprint = False
